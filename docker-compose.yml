@@ -1,0 +1,71 @@
+version: '3.9'
+services:
+  apache:
+    image: php:apache
+    links:
+      - mysql
+      - mongo
+    ports:
+      - "80:80"
+    volumes:
+      - ./src:/var/www/html
+      - ./logs/apache:/usr/local/apache2/logs
+    depends_on:
+      - mysql
+      - mongo
+
+  mysql:
+    image: mysql:8.2.0
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: dbMysql
+      MYSQL_USER: uMysql
+      MYSQL_PASSWORD: admin
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./databases/mysqldata:/var/lib/mysql
+      - ./logs/mariadb:/var/log/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    links:
+      - mysql
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: mysql
+      MYSQL_ROOT_PASSWORD: admin
+    depends_on:
+      - mysql
+
+  mongo:
+    image: mongo:latest
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./databases/mongodb/db:/data/db
+      - ./databases/mongodb/dev.archive:/Databases/dev.archive
+      - ./databases/mongodb/production:/Databases/production
+      - ./logs/mongodb:/var/log/mongodb
+
+  mongo-express:
+    image: mongo-express
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=root
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=password
+      - ME_CONFIG_MONGODB_URL=mongodb://root:password@mongo:27017/?authSource=admin
+      - ME_CONFIG_BASICAUTH_USERNAME=mexpress
+      - ME_CONFIG_BASICAUTH_PASSWORD=mexpress
+    links:
+      - mongo
+    ports:
+      - "8081:8081"
+
+  memcached:
+    image: memcached:latest
+    ports:
+      - "11211:11211"

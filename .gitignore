@@ -33,3 +33,5 @@ build/
 .vscode/
 /database/
 jenkins_home
+.idea
+databases
